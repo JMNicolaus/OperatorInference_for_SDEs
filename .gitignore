@@ -1,0 +1,6 @@
+# ignore data folder
+data/
+
+# ignore all .dat files
+*.dat
+
