@@ -54,7 +54,7 @@ function [y, dxdt, ind] = central_finite_differences(x,h,acc,dim)
           dX = sum(coef.*x(:,:,ii+indx),dim);
           Xii = x(:,:,ii);
       end
-        dxdt = cat(dim,dxdt,dX);%[dxdt, sum(coef.*x(:,ii+indx),2)];
-        y = cat(dim,y,Xii);%[y,x(:,ii)];
+        dxdt = cat(dim,dxdt,dX);
+        y = cat(dim,y,Xii);
     end
 end

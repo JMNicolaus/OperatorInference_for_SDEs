@@ -3,4 +3,6 @@ data/
 
 # ignore all .dat files
 *.dat
+*.asv
+
 

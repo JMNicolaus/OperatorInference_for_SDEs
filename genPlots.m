@@ -35,10 +35,10 @@ FOM.N = size(FOM.A,1);
 [n,m] = size(FOM.B);
 
 % number of sample trajectories to generate
-L = 1e2;
+L = 1e4;
 
 % number of time steps for each trajectory
-s=10;
+s=100;
 
 % the time steps t_0,...,t_{s-1} at which the trajectories are observed
 FOM.t = (0:(s-1))*FOM.h;
@@ -85,22 +85,33 @@ end
 
 %% construct ROMs
 
+% the ranks for which we want to compute the ROMs. needs to be of the form 
+% ranks = [1:rmax];
 ranks = [1:20];
+
+% construct the ROMs
 [ROMs] = buildROMs(FOM,V(:,ranks));
 
 
 %% test ROMs
 
-%LTest = 1e6;
-LTest = 1e4;
+% testing parameters: L= samples size, s = number of time-steps
+LTest = 1e6;
 sTest = s;
 tTest = [0:(sTest-1)]*FOM.h;
+
+% input and initial conditions
 uTest = rand*ones(m,sTest);
 x0Test = zeros(n,1);
+
+% compute FOM reference
 [ExpFOM,CovFOM,fFOM] = computeModel(FOM,x0Test,eye(FOM.N),tTest,uTest,sTest,LTest);
+
+% compute errors of the ROMs
 [errE,errC,errf] = testROMs(ROMs,...
   V,ranks,ExpFOM,CovFOM,fFOM,x0Test,tTest,uTest,sTest,LTest);
 
+% store errors
 errors.errE = errE;
 errors.errC = errC;
 errors.errf = errf;
