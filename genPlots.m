@@ -6,7 +6,7 @@ addpath(genpath("~/matlab2tikz/src"))
 %% define FOM example
 
 FOM.eqtype = "Heat";  % set the example
-snapshotType = "moment"; % decide which snapshot matrix to use: "moment" or "state"
+snapshotType = "state"; % decide which snapshot matrix to use: "moment" or "state"
 switch 1
     case strcmp(FOM.eqtype,"Heat")
         N = 100;

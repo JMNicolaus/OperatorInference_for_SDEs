@@ -42,10 +42,9 @@ n = size(x0,1);
 
 E = zeros(n,s);
 C = zeros(n,n,s);
-f = zeros(3,s);
+f = zeros(2,s);
 f1 = zeros(1,s);
 f2 = zeros(1,s);
-f3 = zeros(1,s);
 
 
 if MdlFlag
@@ -65,10 +64,8 @@ parfor kk=1:LBatches
   states = permute(states,[1 3 2]);
   VrX = pagemtimes(Vr,states);
   f1 = f1 + 1/LBatches*mean(vecnorm(VrX,2).^2,3);
-  f2 = f2 + 1/LBatches*mean(max(max(VrX,0),[],1),3);
-  f3 = f3 + 1/LBatches*mean(mean(exp(VrX).*(VrX.^3),1),3);
+  f2 = f2 + 1/LBatches*mean(mean(exp(VrX).*(VrX.^3),1),3);
 end
 f(1,:) = f1;
 f(2,:) = f2;
-f(3,:) = f3;
 end
