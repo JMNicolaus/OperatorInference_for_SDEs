@@ -1,3 +1,8 @@
+% In this script the left singular vectors of the moment and state-snapshot
+% matricies are compared. 
+% This script produces Table 1.
+
+
 clear;close all;
 rng(0);
 addpath(genpath("./"))

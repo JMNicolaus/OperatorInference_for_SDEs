@@ -1,3 +1,7 @@
+% This script compares the POD and OpInf ROM for the specified examples. 
+% Figures 2 and 3 (and 1, if s=1e3,L=1e4, u=zeros(1,s) are set) are
+% produced by this script. 
+
 clear;
 rng(0);
 addpath(genpath("./"))
@@ -5,7 +9,7 @@ addpath(genpath("./"))
 %% define FOM example
 
 FOM.eqtype = "Heat";  % set the example
-snapshotType = "state"; % decide which snapshot matrix to use: "moment" or "state"
+snapshotType = "moment"; % decide which snapshot matrix to use: "moment" or "state"
 switch 1
     case strcmp(FOM.eqtype,"Heat")
         N = 100;
@@ -17,6 +21,7 @@ switch 1
         N = 1; % will be overwritten
 end
 
+% get matricies of specified example
 [FOM.E,FOM.A,FOM.B,FOM.Bil,FOM.M,FOM.K,FOM.ind] = getMatrices(N,1/(N+1),FOM.eqtype);
 
 % time-step size
