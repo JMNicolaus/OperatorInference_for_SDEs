@@ -1,7 +1,6 @@
 clear;
 rng(0);
 addpath(genpath("./"))
-addpath(genpath("~/matlab2tikz/src"))
 
 %% define FOM example
 
