@@ -1,6 +1,10 @@
 % This script compares the POD and OpInf ROM for the specified examples. 
-% Figures 2 and 3 (and 1, if s=1e3,L=1e4, u=zeros(1,s) are set) are
-% produced by this script. 
+% The subfigures of Figures 5.2 and 5.3 are produced by this script. 
+% To switch betwen the examples set FOM.eqtype to "Heat", "2dHeat" or
+% "ConvectionReaction"
+% 
+% To switch betwen the used snapshot-matrices set snapshotType to "moment"
+% or "state"
 
 clear;
 rng(0);
@@ -11,14 +15,12 @@ addpath(genpath("./"))
 FOM.eqtype = "Heat";  % set the example
 snapshotType = "moment"; % decide which snapshot matrix to use: "moment" or "state"
 switch 1
-    case strcmp(FOM.eqtype,"Heat")
-        N = 100;
-    case strcmp(FOM.eqtype,"2dHeat")
-        N = 20;
-    case strcmp(FOM.eqtype,"AdvDiff")
-        N = 100;
-    otherwise
-        N = 1; % will be overwritten
+  case strcmp(FOM.eqtype,"Heat")
+    N = 100;
+  case strcmp(FOM.eqtype,"2dHeat")
+    N = 20;
+  case strcmp(FOM.eqtype,"ConvectionReaction")
+    N = 1; % will be overwritten
 end
 
 % get matricies of specified example
