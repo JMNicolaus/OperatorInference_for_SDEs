@@ -133,6 +133,7 @@ save("./data/err"+errors.FOMeqtype,'-struct','errors','-v7.3');
 
 %% plot
 
+% singular values of snapshot matrix
 f1 = figure(1);
 grid on
 semilogy(diag(S))
@@ -141,13 +142,13 @@ ylabel('$\sigma_i$','Interpreter','latex')
 title("singular values of snapshot matrix "+ FOM.eqtype + ' equation','Interpreter','latex')
 set(f1,'Position',[100 100 500 500])
 
-
+% error in expectation
 f2 = figure(2);
 errEmat = cell2mat(errE);
 errEmat(errEmat >=1) = NaN;
-semilogy(ranks,errEmat(:,1),'k-o','LineWidth',2)
+semilogy(ranks,errEmat(:,1),'b-s','LineWidth',2)
 hold on
-plot(ranks,errEmat(:,2),'r--x','LineWidth',2)
+plot(ranks,errEmat(:,2),'r-o','LineWidth',2)
 hold off
 grid on
 xlabel('ROM dimension r','Interpreter','latex')
@@ -157,18 +158,58 @@ legend(["POD", "OpInf"])
 axis([1 max(ranks) 1e-5 1e0])
 set(f2,'Position',[100 100 500 500])
 
-
+% error in covariance
 f3 = figure(3);
 errCmat = cell2mat(errC);
 errCmat(errCmat >=1) = NaN;
-semilogy(ranks,errCmat(:,1),'k-o','LineWidth',2)
+semilogy(ranks,errCmat(:,1),'b-s','LineWidth',2)
 hold on
-plot(ranks,errCmat(:,2),'r--x','LineWidth',2)
+plot(ranks,errCmat(:,2),'r-o','LineWidth',2)
 hold off
 grid on
 xlabel('ROM dimension r','Interpreter','latex')
 ylabel('relative error','Interpreter','latex')
-title("relative errors of covariance, " + FOM.eqtype + ' equation','Interpreter','latex')
+title("relative errors of covariance, " + FOM.eqtype + ' equation','Interpreter','Latex')
 legend(["POD", "OpInf"])
 axis([1 max(ranks) 1e-5 1e0])
 set(f3,'Position',[100 100 500 500])
+
+
+% extract weak errors of \Phi_1 at last end-time T
+for ii=1:numel(ranks)
+  errfPlot(ii,:) = errf{ii,1}(:,end)';
+end
+
+% weak error for \Phi_1
+f4 = figure(4);
+semilogy(ranks,errfPlot(:,1),'b-s','LineWidth',2)
+hold on
+plot(ranks,errfPlot(:,2),'r-o','LineWidth',2)
+hold off
+grid on
+xlabel('ROM dimension r','Interpreter','latex')
+ylabel('relative error','Interpreter','latex')
+title("relative weak error $e_{\Phi_1}$, " + FOM.eqtype + ' equation','Interpreter','latex')
+legend(["POD", "OpInf"])
+axis([1 max(ranks) 1e-5 1e0])
+set(f4,'Position',[100 100 500 500])
+
+
+% extract weak errors of \Phi_2 at last end-time T
+for ii=1:numel(ranks)
+  errfPlot(ii,:) = errf{ii,2}(:,end)';
+end
+
+% weak error for \Phi_2
+f5 = figure(5);
+semilogy(ranks,errfPlot(:,1),'b-s','LineWidth',2)
+hold on
+plot(ranks,errfPlot(:,2),'r-o','LineWidth',2)
+hold off
+grid on
+xlabel('ROM dimension r','Interpreter','latex')
+ylabel('relative error','Interpreter','latex')
+title("relative weak error $e_{\Phi_2}$, " + FOM.eqtype + ' equation','Interpreter','latex')
+legend(["POD", "OpInf"])
+axis([1 max(ranks) 1e-5 1e0])
+set(f5,'Position',[100 100 500 500])
