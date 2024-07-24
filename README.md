@@ -18,3 +18,13 @@ To obtain these figures, one needs to specify which example and which snapshot m
 The predefined examples are available by setting the variable FOM.eqtype to 'Heat', '2dHeat' or 'ConvectionReaction'.
 Specifying the variable 'snapshotType' to be 'moment' or 'state' results in the moment-snapshot matrix or the state-snapshot matrix to be used, respectively. 
 The parameters 'L','s' and 'h' correspond to the number of sampled trajectories, the number of time-steps and their size. 
+
+
+The 'ConvectionReaction' example uses the matrices provided by the file '[pde.mat](https://www.slicot.org/objects/software/shared/bench-data/pde.zip)', which is part of the benchmark examples of
+[SLICOT - Subroutine Library in Systems and Control Theory](https://www.slicot.org/20-site/126-benchmark-examples-for-model-reduction).<details><summary>BibTex</summary><pre>
+@MANUAL{slicot_pde,
+ title =        {{SLICOT} - Subroutine Library in Systems and Control Theory},
+ organization = {Niconet e.V.},
+ address =      {\url{http://www.slicot.org}},
+ key =          {SLICOT}
+}</pre></details>
