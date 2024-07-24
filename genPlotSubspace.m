@@ -1,6 +1,8 @@
 % In this script the left singular vectors of the moment and state-snapshot
 % matricies are compared. 
-% This script produces Table 1.
+% This script produces Table 5.1 and Figure 5.1
+% To produce Table 5.1 set u=ones(1,s) in line 39
+% To produce Figure 5.1 set u=zeros(1,s) in line 39
 
 
 clear;close all;
@@ -14,9 +16,7 @@ switch 1
     N = 100;
   case strcmp(FOM.eqtype,"2dHeat")
     N = 20;
-  case strcmp(FOM.eqtype,"AdvDiff")
-    N = 100;
-  otherwise
+  case strcmp(FOM.eqtype,"ConvectionReaction")
     N = 1; % will be overwritten
 end
 
@@ -34,7 +34,7 @@ s=1e3;
 FOM.t = (0:(s-1))*FOM.h;
 
 % input
-u = ones(1,s);
+u = zeros(1,s);
 x0 = zeros(n,L);
 
 % obtain samples
