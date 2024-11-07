@@ -54,6 +54,11 @@ FOM.EObs = cell(1,m+n);
 FOM.CObs = cell(1,m+n);
 FOM.uObs = cell(1,m+n);
 
+% FOM structure without EObs,CObs and uObs fields
+% using this instead of FOM makes the computeModel not slower as these
+% fields are filled
+FOM_reduced = rmfield(FOM, {'EObs', 'CObs', 'uObs'});
+
 % iterate over linearly independent initial condition - input combinations
 % to ensure that the data-matrix has full column-rank
 X0 = eye(n);
@@ -67,7 +72,7 @@ for ii=1:(m+n)
     else
         x0 = X0(:,ii-m);
     end
-    [FOM.EObs{ii},FOM.CObs{ii},~] = computeModel(FOM,x0,eye(n),FOM.t,u,s,L);
+    [FOM.EObs{ii},FOM.CObs{ii},~] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
     FOM.uObs{ii} = u;
 end
 
