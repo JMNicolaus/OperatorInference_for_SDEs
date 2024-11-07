@@ -82,7 +82,7 @@ u = ppval(spline(linspace(0,s*FOM.h,11),randn(11,1)),FOM.t);
 switch 1
   case strcmp(snapshotType,"moment")
     % moment snapshots
-    [EV,CV] = computeModel(FOM,zeros(n,1),eye(n),FOM.t,u,s,L);
+    [EV,CV] = computeModel(FOM_reduced,zeros(n,1),eye(n),FOM.t,u,s,L);
     [V,S,~] = svd([EV, reshape(CV,n,[])],"econ");
 
   case strcmp(snapshotType,"state")
@@ -116,7 +116,7 @@ uTest = rand*ones(m,sTest);
 x0Test = zeros(n,1);
 
 % compute FOM reference
-[ExpFOM,CovFOM,fFOM] = computeModel(FOM,x0Test,eye(FOM.N),tTest,uTest,sTest,LTest);
+[ExpFOM,CovFOM,fFOM] = computeModel(FOM_reduced,x0Test,eye(FOM.N),tTest,uTest,sTest,LTest);
 
 % compute errors of the ROMs
 [errE,errC,errf] = testROMs(ROMs,...
