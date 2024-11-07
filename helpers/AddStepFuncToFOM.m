@@ -16,13 +16,12 @@ function [FOM] = AddStepFuncToFOM(FOM)
       h = FOM.h;
   end
 
+  E = FOM.E;
   A = FOM.A;
-  E = eye(size(A))/h-A;
-  [Q,R] = qr(E);
+  EAh = E-h*A;
+  B = FOM.B;
+  M = FOM.M;
 
-  A = Q'*1/h;
-  B = Q'*FOM.B;
-  M = Q'*FOM.M*1/sqrt(h);
-  FOM.step = @(x0,u,L) R\ (A*x0+B*u+M*randn(size(M,2),L));
+  FOM.step = @(x0,u,L) EAh\(x0+h*B*u+sqrt(h)*M*randn(size(M,2),L));
 
 end
