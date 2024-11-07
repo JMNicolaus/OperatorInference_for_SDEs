@@ -46,7 +46,7 @@ switch 1
 
 
   case strcmp(type,'2dHeat')
-    E = speye(N);
+    
     % 1d Laplace
     A1d = sparse(fd_laplace(N,dx));
     % 2d Laplace
@@ -63,6 +63,7 @@ switch 1
 
     % dynamics in rectangle removed
     A = Afull(ind,ind);
+    E = speye(size(A));
 
     % define input rectangle
     istart = 1;
