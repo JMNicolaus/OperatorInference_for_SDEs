@@ -79,3 +79,10 @@ for ii=1:10
   end
 end
 round(log10(err),2)
+
+figure(3)
+semilogy(diag(S1)/L)
+hold on 
+plot(diag(S2))
+hold off
+legend
