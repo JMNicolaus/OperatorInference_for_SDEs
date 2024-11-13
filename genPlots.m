@@ -13,7 +13,6 @@ addpath(genpath("./"))
 %% define FOM example
 
 FOM.eqtype = "Heat";  % set the example
-snapshotType = "moment"; % decide which snapshot matrix to use: "moment" or "state"
 switch 1
   case strcmp(FOM.eqtype,"Heat")
     N = 100;
@@ -36,12 +35,12 @@ FOM = AddStepFuncToFOM(FOM);
 FOM.N = size(FOM.A,1);
 
 
-%% generate data
+%% setup parameters and allocate storage
 
 [n,m] = size(FOM.B);
 
 % number of sample trajectories to generate
-L = 1e4;
+L = 1e2;
 
 % number of time steps for each trajectory
 s=100;
@@ -59,22 +58,10 @@ FOM.uObs = cell(1,m+n);
 % fields are filled
 FOM_reduced = rmfield(FOM, {'EObs', 'CObs', 'uObs'});
 
-% iterate over linearly independent initial condition - input combinations
-% to ensure that the data-matrix has full column-rank
-X0 = eye(n);
-X0 = X0(:,randperm(n));
-for ii=1:(m+n)
-    disp("ii=" + ii + " of " + (m+n))
-    u = zeros(m,s);
-    if ii<=m
-        u(ii,:) = ones(1,s);
-        x0 = zeros(n,1);
-    else
-        x0 = X0(:,ii-m);
-    end
-    [FOM.EObs{ii},FOM.CObs{ii},~] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
-    FOM.uObs{ii} = u;
-end
+%% compute subspace
+
+% decide which snapshot matrix to use: "moment" or "state"
+snapshotType = "state"; 
 
 % polynomial with random coefficients
 u = ppval(spline(linspace(0,s*FOM.h,11),randn(11,1)),FOM.t);
@@ -93,6 +80,27 @@ switch 1
     error("please specify snapshotType as 'moment' or 'state'.")
 end
 
+%% generate training data
+
+% iterate over linearly independent initial condition - input combinations
+% to ensure that the data-matrix has full column-rank
+X0 = eye(n);
+X0 = X0(:,randperm(n));
+for ii=1:(m+n)
+    disp("ii=" + ii + " of " + (m+n))
+    u = zeros(m,s);
+    if ii<=m
+        u(ii,:) = ones(1,s);
+        x0 = zeros(n,1);
+    else
+        x0 = X0(:,ii-m);
+    end
+    [FOM.EObs{ii},FOM.CObs{ii}] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
+    FOM.uObs{ii} = u;
+end
+
+
+
 
 %% construct ROMs
 
@@ -107,7 +115,7 @@ ranks = [1:20];
 %% test ROMs
 
 % testing parameters: L= samples size, s = number of time-steps
-LTest = 1e6;
+LTest = 1e4;
 sTest = s;
 tTest = [0:(sTest-1)]*FOM.h;
 
