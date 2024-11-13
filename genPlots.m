@@ -40,7 +40,7 @@ FOM.N = size(FOM.A,1);
 [n,m] = size(FOM.B);
 
 % number of sample trajectories to generate
-L = 1e2;
+L = 1e4;
 
 % number of time steps for each trajectory
 s=100;
@@ -60,7 +60,7 @@ u = ppval(spline(linspace(0,s*FOM.h,11),randn(11,1)),FOM.t);
 switch 1
   case strcmp(snapshotType,"moment")
     % moment snapshots
-    [EV,CV] = computeModel(FOM_reduced,zeros(n,1),eye(n),FOM.t,u,s,L);
+    [EV,CV] = computeModel(FOM,zeros(n,1),eye(n),FOM.t,u,s,L);
     [V,S,~] = svd([EV, reshape(CV,n,[])],"econ");
 
   case strcmp(snapshotType,"state")
@@ -111,10 +111,7 @@ end
 
 %% construct ROMs
 
-
-
-% construct the ROMs
-[ROMs] = buildROMs(FOM,V(:,ranks));
+[ROMs] = buildROMs(FOM,Vr);
 
 
 %% test ROMs
