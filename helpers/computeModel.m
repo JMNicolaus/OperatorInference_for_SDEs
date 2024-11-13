@@ -9,7 +9,6 @@ function [E,C,f] = computeModel(Mdl,x0,Vr,t,u,s,L)
 % u are the input values at the time steps
 % numObs are the number of observations to take
 % numSamples is the number of Samples for the MC approximations
-
 MaxLBatchSize = 1e3;
 LBatches = L./MaxLBatchSize;
 LBatches(LBatches <1)=1;
@@ -56,7 +55,7 @@ end
 
 parfor kk=1:LBatches
   %disp("Sampling Batch " + kk + " of " + LBatches + " of Model")
-  states = getStates(x0,u)
+  states = getStates(x0,u);
   m = mean(states,2);
   c = 1/(LBatchSize-1)*pagemtimes(states-m,pagetranspose(states-m));
   E = E + 1/LBatches*Vr*permute(m,[1 3 2]);
