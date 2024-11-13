@@ -37,7 +37,7 @@ p = [];
 
 % construct least-squares matricies
 for ii = 1:pmax 
-  Er = Vr'*Ecell{ii};
+  Er = Ecell{ii}(1:r,:);
   u = ucell{ii};
   [x,dxdt,ind] = central_finite_differences(Er(:,1:sExp),dt(1),2);
 
@@ -67,7 +67,7 @@ H = zeros(r,r);
 
 % compute residuals
 for ii=1:pmax
-  Cr = pagemtimes(pagemtimes(Vr',Ccell{p(ii)}),Vr);
+  Cr = Ccell{p(ii)}(1:r,1:r,:);
   Crdot = diff(Cr,1,3)./reshape(dt,1,1,[]);
   for jj = 1:sCov
     Clyap = (Ahat+Nhat*u(jj))*Cr(:,:,jj) + Cr(:,:,jj)*(Ahat+Nhat*u(jj))';

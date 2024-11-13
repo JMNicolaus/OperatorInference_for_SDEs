@@ -102,8 +102,12 @@ for ii=1:(m+rmax)
     else
         x0 = X0(:,ii-m);
     end
-    [FOM.EObs{ii},FOM.CObs{ii}] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
+    [EObs_temp,CObs_temp] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
+    % store only the projected moments
+    FOM.EObs{ii} = Vr'*EObs_temp;
+    FOM.CObs{ii} = pagemtimes(Vr',pagemtimes(CObs_temp,Vr));
     FOM.uObs{ii} = u;
+    clear EObs_temp CObs_temp
 end
 
 
