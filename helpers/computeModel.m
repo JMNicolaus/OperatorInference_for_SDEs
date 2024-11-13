@@ -52,6 +52,12 @@ else
   getStates = @(x0,u) permute(semiImplicitEulerStates(Vr'*x0,Er,Ar,Br,Bilr,Mr,u,t,LBatchSize,s),[1 3 2]);
 end
 
+if nargout == 3
+  computeFunctionals = true;
+else 
+  computeFunctionals = false;
+end
+
 
 parfor kk=1:LBatches
   %disp("Sampling Batch " + kk + " of " + LBatches + " of Model")
@@ -60,10 +66,12 @@ parfor kk=1:LBatches
   c = 1/(LBatchSize-1)*pagemtimes(states-m,pagetranspose(states-m));
   E = E + 1/LBatches*Vr*permute(m,[1 3 2]);
   C = C + 1/LBatches*pagemtimes(Vr,pagemtimes(c,Vr'));
-  states = permute(states,[1 3 2]);
-  VrX = pagemtimes(Vr,states);
-  f1 = f1 + 1/LBatches*mean(vecnorm(VrX,2).^2,3);
-  f2 = f2 + 1/LBatches*mean(mean(exp(VrX).*(VrX.^3),1),3);
+  if computeFunctionals
+    states = permute(states,[1 3 2]);
+    VrX = pagemtimes(Vr,states);
+    f1 = f1 + 1/LBatches*mean(vecnorm(VrX,2).^2,3);
+    f2 = f2 + 1/LBatches*mean(mean(exp(VrX).*(VrX.^3),1),3);
+  end
 end
 f(1,:) = f1;
 f(2,:) = f2;
