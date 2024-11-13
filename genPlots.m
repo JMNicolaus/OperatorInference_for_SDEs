@@ -48,15 +48,6 @@ s=100;
 % the time steps t_0,...,t_{s-1} at which the trajectories are observed
 FOM.t = (0:(s-1))*FOM.h;
 
-% create storage objects
-FOM.EObs = cell(1,m+n);
-FOM.CObs = cell(1,m+n);
-FOM.uObs = cell(1,m+n);
-
-% FOM structure without EObs,CObs and uObs fields
-% using this instead of FOM makes the computeModel not slower as these
-% fields are filled
-FOM_reduced = rmfield(FOM, {'EObs', 'CObs', 'uObs'});
 
 %% compute subspace
 
@@ -80,14 +71,30 @@ switch 1
     error("please specify snapshotType as 'moment' or 'state'.")
 end
 
+% the ranks for which we want to compute the ROMs. 
+rmax = 20;
+ranks = [1:rmax];
+
+% the subspace of is spanned by the columns of Vr
+Vr = V(:,ranks);
+
 %% generate training data
+
+% create storage objects
+FOM.EObs = cell(1,m+rmax);
+FOM.CObs = cell(1,m+rmax);
+FOM.uObs = cell(1,m+rmax);
+
+% FOM structure without EObs,CObs and uObs fields
+% using this instead of FOM makes the computeModel not slower as these
+% fields are filled
+FOM_reduced = rmfield(FOM, {'EObs', 'CObs', 'uObs'});
 
 % iterate over linearly independent initial condition - input combinations
 % to ensure that the data-matrix has full column-rank
-X0 = eye(n);
-X0 = X0(:,randperm(n));
-for ii=1:(m+n)
-    disp("ii=" + ii + " of " + (m+n))
+X0 = Vr;
+for ii=1:(m+rmax)
+    disp("ii=" + ii + " of " + (m+rmax))
     u = zeros(m,s);
     if ii<=m
         u(ii,:) = ones(1,s);
@@ -104,9 +111,7 @@ end
 
 %% construct ROMs
 
-% the ranks for which we want to compute the ROMs. needs to be of the form 
-% ranks = [1:rmax];
-ranks = [1:20];
+
 
 % construct the ROMs
 [ROMs] = buildROMs(FOM,V(:,ranks));
