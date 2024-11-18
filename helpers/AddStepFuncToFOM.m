@@ -18,10 +18,10 @@ function [FOM] = AddStepFuncToFOM(FOM)
 
   E = FOM.E;
   A = FOM.A;
-  EAh = E-h*A;
+  N = FOM.Bil; 
   B = FOM.B;
   M = FOM.M;
 
-  FOM.step = @(x0,u,L) EAh\(x0+h*B*u+sqrt(h)*M*randn(size(M,2),L));
+  FOM.step = @(x0,u,L) (E-h*A-h*sum(N.*reshape(u,1,1,[]),3))\(x0+h*B*u+sqrt(h)*M*randn(size(M,2),L));
 
 end
