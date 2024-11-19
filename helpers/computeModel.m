@@ -58,8 +58,7 @@ else
   computeFunctionals = false;
 end
 
-
-parfor kk=1:LBatches
+for kk=1:LBatches
   %disp("Sampling Batch " + kk + " of " + LBatches + " of Model")
   states = getStates(x0,u);
   m = mean(states,2);
