@@ -25,7 +25,7 @@ for rr=1:rmax
 
   % construct OpInf ROM
   ROMOI{rr}.E = eye(rr);
-  [ROMOI{rr}.A,ROMOI{rr}.B,ROMOI{rr}.Bil,ROMOI{rr}.M,~] = opInfMultInput(FOM.EObs,FOM.CObs,Vr,FOM.uObs,FOM.t);
+  [ROMOI{rr}.A,ROMOI{rr}.B,ROMOI{rr}.Bil,ROMOI{rr}.M,~] = opInfMultInput(FOM.EObs,FOM.CObs,FOM.uObs,Vr,FOM.t,FOM.isBil);
 
 end
 
