@@ -19,7 +19,7 @@ switch size(x0,2)
   case 1
     x0 = repmat(x0,1,LBatchSize);
   otherwise
-    error("x0 has to be of size N-by-1. The possibility of providing ..." + ...
+    error("x0 has to be of size N-by-1. The possibility of providing " + ...
       "samples of an nondeterministic initial value is not implemented yet.")
 end
 

@@ -26,14 +26,15 @@ switch 1
     B = [1/dx^2; zeros(N-2,1); 1/dx^2];
 
     % no bilinear term
-    Bil = zeros(N);
+    Nx = [1:N]'*dx;
+    diagBil = -200*sin(10*pi*Nx);
+    Bil = spdiags(diagBil,0,N,N);
 
     % Wiener process is of dimension d=2
     d = 2;
 
     % spatial discretisation of the noise
     Diff = zeros(N,d);
-    Nx = [1:N]*dx;
     Diff(:,1) = exp(-10*(Nx-1/2).^2);
     Diff(:,2) = sin(Nx*2*pi);
     Diff = 0.1*Diff;
