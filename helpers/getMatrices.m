@@ -25,7 +25,7 @@ switch 1
     % B models BC
     B = [1/dx^2; zeros(N-2,1); 1/dx^2];
 
-    % no bilinear term
+    % bilinear term
     Nx = [1:N]'*dx;
     diagBil = -200*sin(10*pi*Nx);
     Bil = spdiags(diagBil,0,N,N);
@@ -114,6 +114,7 @@ end
 end
 
 function A = fd_laplace(N,dx)
-% finite-difference discretisation of the 1d Laplace operator
-A = (-2*diag(ones(N,1)) + diag(ones(N-1,1),1) + diag(ones(N-1,1),-1))/dx^2;
+  % finite-difference discretisation of the 1d Laplace operator
+  A = (-2*diag(ones(N,1)) + diag(ones(N-1,1),1) + diag(ones(N-1,1),-1))/dx^2;
+  A = sparse(A);
 end
