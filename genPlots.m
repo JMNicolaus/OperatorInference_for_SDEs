@@ -6,24 +6,27 @@
 % To switch betwen the used snapshot-matrices set snapshotType to "moment"
 % or "state"
 
-clear;
+clear all;
+close all;
 rng(0);
 addpath(genpath("./"))
 
 %% define FOM example
 
-FOM.eqtype = "Heat";  % set the example
+FOM.eqtype = "Heat";  
 switch 1
   case strcmp(FOM.eqtype,"Heat")
-    N = 100;
+    N = 1000;
   case strcmp(FOM.eqtype,"2dHeat")
-    N = 20;
+    N = 20; % number of grid point for one spatial dimension
   case strcmp(FOM.eqtype,"ConvectionReaction")
     N = 1; % will be overwritten
 end
 
 % get matricies of specified example
 [FOM.E,FOM.A,FOM.B,FOM.Bil,FOM.M,FOM.K,FOM.ind] = getMatrices(N,1/(N+1),FOM.eqtype);
+% set to true, if there is a non-zero entry in FOM.Bil
+FOM.isBil = nnz(FOM.Bil)~=0;
 
 % time-step size
 FOM.h=1e-4;
@@ -92,25 +95,55 @@ FOM_reduced = rmfield(FOM, {'EObs', 'CObs', 'uObs'});
 
 % iterate over linearly independent initial condition - input combinations
 % to ensure that the data-matrix has full column-rank
-X0 = Vr;
-for ii=1:(m+rmax)
-    disp("ii=" + ii + " of " + (m+rmax))
-    u = zeros(m,s);
-    if ii<=m
-        u(ii,:) = ones(1,s);
-        x0 = zeros(n,1);
-    else
-        x0 = X0(:,ii-m);
-    end
-    [EObs_temp,CObs_temp] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
-    % store only the projected moments
-    FOM.EObs{ii} = Vr'*EObs_temp;
-    FOM.CObs{ii} = pagemtimes(Vr',pagemtimes(CObs_temp,Vr));
-    FOM.uObs{ii} = u;
-    clear EObs_temp CObs_temp
+
+% define controls to train on
+k = 5;
+uTrain = cell(1, m + 1 + k);
+for ii=1:(m+1+k)
+  utemp = zeros(m,s);
+  if ii~=1
+    utemp(ii-1,:) = rand*ones(1,s);
+  end
+  if ii>m+1
+    utemp = repmat(rand(m,1),1,s);
+  end
+  uTrain{ii} = utemp;
 end
+clear utemp
+
+% define initial conditions to train on
+x0Train = cell(1,rmax+1);
+for ii=1:(rmax+1)
+  if ii==1
+    x0temp = zeros(FOM.N,1);
+  else
+    x0temp = Vr(:,ii-1);
+  end
+  x0Train{ii} = x0temp;
+end
+clear x0temp
 
 
+idx = 1;
+  for ii=1:m+1+k
+    u = uTrain{ii};
+    for jj=1:rmax+1
+      x0 = x0Train{jj};
+      if (~FOM.isBil && ((ii-1)*(jj-1)~=0)) || (ii==1 && jj==1)
+        % We dont need to sample pairs of non-zero IC and non-zero control
+        % if the the FOM is not bilinear. 
+        continue
+      end
+      disp((ii-1) + " " + (jj-1))
+      [EObs_temp,CObs_temp] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
+      % store only the projected moments
+      FOM.EObs{idx} = Vr'*EObs_temp;
+      FOM.CObs{idx} = pagemtimes(Vr',pagemtimes(CObs_temp,Vr));
+      FOM.uObs{idx} = u;
+      clear EObs_temp CObs_temp
+      idx = idx +1;
+    end
+  end
 
 
 %% construct ROMs
