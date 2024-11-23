@@ -32,9 +32,6 @@ s = 100;
 h = 1e-4;
 t = h*[0:s-1];
 
-% set number of extra training pairs, set to 0 if FOM is not bilinear
-k_extra = 3;
-
 %% define FOM example
 
 switch 1
@@ -60,6 +57,13 @@ FOM = AddStepFuncToFOM(FOM);
 FOM.t = t;
 
 [N,m] = size(FOM.B);
+
+% set number of extra training pairs depending on if bilinearity is present
+if FOM.isBil
+    k_extra = 3;
+else
+    k_extra = 0;
+end
 
 
 
