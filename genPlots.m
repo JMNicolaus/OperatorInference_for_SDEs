@@ -1,8 +1,8 @@
-% This script compares the POD and OpInf ROM for the specified examples. 
-% The subfigures of Figures 5.2 and 5.3 are produced by this script. 
+% This script compares the POD and OpInf ROM for the specified examples.
+% The subfigures of Figures 5.2 and 5.3 are produced by this script.
 % To switch betwen the examples set FOM.eqtype to "Heat", "2dHeat" or
 % "ConvectionReaction"
-% 
+%
 % To switch betwen the used snapshot-matrices set snapshotType to "moment"
 % or "state"
 
@@ -11,51 +11,59 @@ close all;
 rng(0);
 addpath(genpath("./"))
 
+%% setup parameters
+
+% select experiment from "Heat", "2dHeat", "ConvectionReaction"
+FOM.eqtype = "Heat";
+
+% selct which snapshot matrix to use: "moment" or "state"
+snapshotType = "state";
+
+% set maximum rank
+r_max = 20;
+
+% number of samples
+L_subspace  = 1e2;
+L_train     = 1e2;
+L_test      = 1e4;
+
+% number of time-steps s, time-step size h and the times themselves t
+s = 100;
+h = 1e-4;
+t = h*[0:s-1];
+
+% set number of extra training pairs, set to 0 if FOM is not bilinear
+k_extra = 3;
+
 %% define FOM example
 
-FOM.eqtype = "Heat";  
 switch 1
   case strcmp(FOM.eqtype,"Heat")
-    N = 1000;
+    Ntemp = 1000;
   case strcmp(FOM.eqtype,"2dHeat")
-    N = 20; % number of grid point for one spatial dimension
+    Ntemp = 20; % number of grid point for one spatial dimension
   case strcmp(FOM.eqtype,"ConvectionReaction")
-    N = 1; % will be overwritten
+    Ntemp = 1; % will be overwritten
 end
 
-% get matricies of specified example
-[FOM.E,FOM.A,FOM.B,FOM.Bil,FOM.M,FOM.K,FOM.ind] = getMatrices(N,1/(N+1),FOM.eqtype);
-% set to true, if there is a non-zero entry in FOM.Bil
+% get matricies of specified example and set isBil flag
+[FOM.E,FOM.A,FOM.B,FOM.Bil,FOM.M,FOM.K,FOM.ind] = getMatrices(Ntemp,1/(Ntemp+1),FOM.eqtype);
 FOM.isBil = nnz(FOM.Bil)~=0;
 
-% time-step size
-FOM.h=1e-4;
+% store time-step size in FOM
+FOM.h = h;
 
 % add the stepping function of the time-discretised ODE
 FOM = AddStepFuncToFOM(FOM);
 
-% make sure we use the correct N. this is only relevant for the 2d Heat ex.
-FOM.N = size(FOM.A,1);
-
-
-%% setup parameters and allocate storage
-
-[n,m] = size(FOM.B);
-
-% number of sample trajectories to generate
-L = 1e4;
-
-% number of time steps for each trajectory
-s=100;
-
 % the time steps t_0,...,t_{s-1} at which the trajectories are observed
-FOM.t = (0:(s-1))*FOM.h;
+FOM.t = t;
+
+[N,m] = size(FOM.B);
+
 
 
 %% compute subspace
-
-% decide which snapshot matrix to use: "moment" or "state"
-snapshotType = "state"; 
 
 % polynomial with random coefficients
 u = ppval(spline(linspace(0,s*FOM.h,11),randn(11,1)),FOM.t);
@@ -63,20 +71,19 @@ u = ppval(spline(linspace(0,s*FOM.h,11),randn(11,1)),FOM.t);
 switch 1
   case strcmp(snapshotType,"moment")
     % moment snapshots
-    [EV,CV] = computeModel(FOM,zeros(n,1),eye(n),FOM.t,u,s,L);
-    [V,S,~] = svd([EV, reshape(CV,n,[])],"econ");
+    [EV,CV] = computeModel(FOM,zeros(N,1),eye(N),FOM.t,u,s,L_subspace);
+    [V,S,~] = svd([EV, reshape(CV,N,[])],"econ");
 
   case strcmp(snapshotType,"state")
     % state snapshots
-    X = queryBB(FOM.step,zeros(n,L),u,L);
-    [V,S,~] = svd(reshape(X,n,[]),"econ");
+    X = queryBB(FOM.step,zeros(N,L_subspace),u,L_subspace);
+    [V,S,~] = svd(reshape(X,N,[]),"econ");
   otherwise
     error("please specify snapshotType as 'moment' or 'state'.")
 end
 
-% the ranks for which we want to compute the ROMs. 
-rmax = 20;
-ranks = [1:rmax];
+% the ranks for which we want to compute the ROMs.
+ranks = [1:r_max];
 
 % the subspace of is spanned by the columns of Vr
 Vr = V(:,ranks);
@@ -84,9 +91,9 @@ Vr = V(:,ranks);
 %% generate training data
 
 % create storage objects
-FOM.EObs = cell(1,m+rmax);
-FOM.CObs = cell(1,m+rmax);
-FOM.uObs = cell(1,m+rmax);
+FOM.EObs = cell(1,m+r_max);
+FOM.CObs = cell(1,m+r_max);
+FOM.uObs = cell(1,m+r_max);
 
 % FOM structure without EObs,CObs and uObs fields
 % using this instead of FOM makes the computeModel not slower as these
@@ -97,25 +104,21 @@ FOM_reduced = rmfield(FOM, {'EObs', 'CObs', 'uObs'});
 % to ensure that the data-matrix has full column-rank
 
 % define controls to train on
-k = 5;
-uTrain = cell(1, m + 1 + k);
-for ii=1:(m+1+k)
+%uTrain = cell(1, m + 1 + k_extra);
+for ii=1:(m+1)
   utemp = zeros(m,s);
   if ii~=1
     utemp(ii-1,:) = rand*ones(1,s);
-  end
-  if ii>m+1
-    utemp = repmat(rand(m,1),1,s);
   end
   uTrain{ii} = utemp;
 end
 clear utemp
 
 % define initial conditions to train on
-x0Train = cell(1,rmax+1);
-for ii=1:(rmax+1)
+%x0Train = cell(1,r_max+1 +k_extra);
+for ii=1:(r_max+1)
   if ii==1
-    x0temp = zeros(FOM.N,1);
+    x0temp = zeros(N,1);
   else
     x0temp = Vr(:,ii-1);
   end
@@ -123,27 +126,47 @@ for ii=1:(rmax+1)
 end
 clear x0temp
 
-
+% train on linearly independent pairs
 idx = 1;
-  for ii=1:m+1+k
-    u = uTrain{ii};
-    for jj=1:rmax+1
-      x0 = x0Train{jj};
-      if (~FOM.isBil && ((ii-1)*(jj-1)~=0)) || (ii==1 && jj==1)
-        % We dont need to sample pairs of non-zero IC and non-zero control
-        % if the the FOM is not bilinear. 
-        continue
-      end
-      disp((ii-1) + " " + (jj-1))
-      [EObs_temp,CObs_temp] = computeModel(FOM_reduced,x0,eye(n),FOM.t,u,s,L);
-      % store only the projected moments
-      FOM.EObs{idx} = Vr'*EObs_temp;
-      FOM.CObs{idx} = pagemtimes(Vr',pagemtimes(CObs_temp,Vr));
-      FOM.uObs{idx} = u;
-      clear EObs_temp CObs_temp
-      idx = idx +1;
+for ii=1:m+1
+  u = uTrain{ii};
+  for jj=1:r_max+1
+    x0 = x0Train{jj};
+    if (~FOM.isBil && ((ii-1)*(jj-1)~=0)) || (ii==1 && jj==1)
+      % We dont need to sample pairs of non-zero IC and non-zero control
+      % if the the FOM is not bilinear.
+      continue
     end
+    disp((ii-1) + " " + (jj-1))
+    [EObs_temp,CObs_temp] = computeModel(FOM_reduced,x0,eye(N),t,u,s,L_train);
+    % store only the projected moments
+    FOM.EObs{idx} = Vr'*EObs_temp;
+    FOM.CObs{idx} = pagemtimes(Vr',pagemtimes(CObs_temp,Vr));
+    FOM.uObs{idx} = u;
+    clear EObs_temp CObs_temp
+    idx = idx +1;
   end
+end
+
+% generate additional training sets
+for kk=1:k_extra
+
+  % additional control and IC to train on
+  u = repmat(rand(m,1),1,s);
+  x0= Vr(:,randi(r_max));%abs(randn(N,1));
+
+  % save to training set
+  uTrain{m+1+kk} = u;
+  x0Train{r_max+1+kk} = x0;
+
+  disp(kk)
+  [EObs_temp,CObs_temp] = computeModel(FOM_reduced,x0,eye(N),t,u,s,L_train);
+  % store only the projected moments
+  FOM.EObs{idx+kk-1} = Vr'*EObs_temp;
+  FOM.CObs{idx+kk-1} = pagemtimes(Vr',pagemtimes(CObs_temp,Vr));
+  FOM.uObs{idx+kk-1} = u;
+  clear EObs_temp CObs_temp
+end
 
 
 %% construct ROMs
@@ -153,29 +176,24 @@ idx = 1;
 
 %% test ROMs
 
-% testing parameters: L= samples size, s = number of time-steps
-LTest = 1e4;
-sTest = s;
-tTest = [0:(sTest-1)]*FOM.h;
-
 % input and initial conditions
-uTest = rand*ones(m,sTest);
-x0Test = zeros(n,1);
+u_test = rand*ones(m,s);
+x0_test = zeros(N,1);
 
 % compute FOM reference
-[ExpFOM,CovFOM,fFOM] = computeModel(FOM_reduced,x0Test,eye(FOM.N),tTest,uTest,sTest,LTest);
+[ExpFOM,CovFOM,fFOM] = computeModel(FOM_reduced,x0_test,eye(N),t,u_test,s,L_test);
 
 % compute errors of the ROMs
 [errE,errC,errf] = testROMs(ROMs,...
-  V,ranks,ExpFOM,CovFOM,fFOM,x0Test,tTest,uTest,sTest,LTest);
+  V,ranks,ExpFOM,CovFOM,fFOM,x0_test,t,u_test,s,L_test);
 
 % store errors
 errors.errE = errE;
 errors.errC = errC;
 errors.errf = errf;
 errors.FOMeqtype = FOM.eqtype;
-errors.L = LTest;
-errors.s = sTest;
+errors.L = L_test;
+errors.s = s;
 
 if ~exist("./data","dir")
   mkdir("./data")
@@ -229,7 +247,8 @@ set(f3,'Position',[100 100 500 500])
 
 % extract weak errors of \Phi_1 at last end-time T
 for ii=1:numel(ranks)
-  errfPlot(ii,:) = errf{ii,1}(:,end)';
+  errfPlot(ii,1) = errf{ii,1}(1,end)';
+  errfPlot(ii,2) = errf{ii,2}(1,end)';
 end
 
 % weak error for \Phi_1
@@ -249,7 +268,8 @@ set(f4,'Position',[100 100 500 500])
 
 % extract weak errors of \Phi_2 at last end-time T
 for ii=1:numel(ranks)
-  errfPlot(ii,:) = errf{ii,2}(:,end)';
+  errfPlot(ii,1) = errf{ii,1}(2,end)';
+  errfPlot(ii,2) = errf{ii,2}(2,end)';
 end
 
 % weak error for \Phi_2
