@@ -60,7 +60,7 @@ FOM.t = t;
 
 % set number of extra training pairs depending on if bilinearity is present
 if FOM.isBil
-    k_extra = 3;
+    k_extra = 10;
 else
     k_extra = 0;
 end
@@ -191,18 +191,26 @@ x0_test = zeros(N,1);
 [errE,errC,errf] = testROMs(ROMs,...
   V,ranks,ExpFOM,CovFOM,fFOM,x0_test,t,u_test,s,L_test);
 
-% store errors
+%% store errors
+errors.eqtype = FOM.eqtype;
+errors.snapshotType = snapshotType;
 errors.errE = errE;
 errors.errC = errC;
 errors.errf = errf;
-errors.FOMeqtype = FOM.eqtype;
-errors.L = L_test;
+errors.L_subspace = L_subspace;
+errors.L_train = L_train;
+errors.L_test = L_test;
 errors.s = s;
+errors.h = h;
+errors.r_max = r_max;
+errors.k_extra = k_extra;
+errors.x0_test = x0_test;
+errors.u_test = u_test;
 
 if ~exist("./data","dir")
   mkdir("./data")
 end
-save("./data/err"+errors.FOMeqtype,'-struct','errors','-v7.3');
+%save("./data/err"+errors.eqtype,'-struct','errors','-v7.3');
 
 
 %% plot
@@ -213,7 +221,7 @@ grid on
 semilogy(diag(S))
 xlabel('$\sigma_r$','Interpreter','latex')
 ylabel('$\sigma_i$','Interpreter','latex')
-title("singular values of snapshot matrix "+ FOM.eqtype + ' equation','Interpreter','latex')
+title("singular values of snapshot matrix "+ errors.eqtype + ' equation','Interpreter','latex')
 set(f1,'Position',[100 100 500 500])
 
 % error in expectation
@@ -227,7 +235,7 @@ hold off
 grid on
 xlabel('ROM dimension r','Interpreter','latex')
 ylabel('relative error','Interpreter','latex')
-title("relative errors of expectation, " + FOM.eqtype + ' equation','Interpreter','latex')
+title("relative errors of expectation, " + errors.eqtype + ' equation','Interpreter','latex')
 legend(["POD", "OpInf"])
 axis([1 max(ranks) 1e-5 1e0])
 set(f2,'Position',[100 100 500 500])
@@ -243,7 +251,7 @@ hold off
 grid on
 xlabel('ROM dimension r','Interpreter','latex')
 ylabel('relative error','Interpreter','latex')
-title("relative errors of covariance, " + FOM.eqtype + ' equation','Interpreter','Latex')
+title("relative errors of covariance, " + errors.eqtype + ' equation','Interpreter','Latex')
 legend(["POD", "OpInf"])
 axis([1 max(ranks) 1e-5 1e0])
 set(f3,'Position',[100 100 500 500])
@@ -264,7 +272,7 @@ hold off
 grid on
 xlabel('ROM dimension r','Interpreter','latex')
 ylabel('relative error','Interpreter','latex')
-title("relative weak error $e_{\Phi_1}$, " + FOM.eqtype + ' equation','Interpreter','latex')
+title("relative weak error $e_{\Phi_1}$, " + errors.eqtype + ' equation','Interpreter','latex')
 legend(["POD", "OpInf"])
 axis([1 max(ranks) 1e-5 1e0])
 set(f4,'Position',[100 100 500 500])
@@ -285,7 +293,7 @@ hold off
 grid on
 xlabel('ROM dimension r','Interpreter','latex')
 ylabel('relative error','Interpreter','latex')
-title("relative weak error $e_{\Phi_2}$, " + FOM.eqtype + ' equation','Interpreter','latex')
+title("relative weak error $e_{\Phi_2}$, " + errors.eqtype + ' equation','Interpreter','latex')
 legend(["POD", "OpInf"])
 axis([1 max(ranks) 1e-5 1e0])
 set(f5,'Position',[100 100 500 500])
