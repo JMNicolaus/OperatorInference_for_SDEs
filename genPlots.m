@@ -207,10 +207,21 @@ errors.k_extra = k_extra;
 errors.x0_test = x0_test;
 errors.u_test = u_test;
 
+% Create base data directory if necessary 
 if ~exist("./data","dir")
-  mkdir("./data")
+    mkdir("./data")
 end
-%save("./data/err"+errors.eqtype,'-struct','errors','-v7.3');
+
+% Generate a subfolder name
+timestamp = datestr(now, 'yyyy-mm-dd_HH-MM-SS');
+foldername = fullfile('./data', ...
+    [num2str(errors.eqtype) '_' timestamp]);
+
+% Create subfolder
+mkdir(foldername);
+
+% Save the errors struct 
+save(fullfile(foldername, 'errors.mat'), '-struct', 'errors', '-v7.3');
 
 
 %% plot
@@ -226,7 +237,7 @@ set(f1,'Position',[100 100 500 500])
 
 % error in expectation
 f2 = figure(2);
-errEmat = cell2mat(errE);
+errEmat = cell2mat(errors.errE);
 errEmat(errEmat >=1) = NaN;
 semilogy(ranks,errEmat(:,1),'b-s','LineWidth',2)
 hold on
@@ -242,7 +253,7 @@ set(f2,'Position',[100 100 500 500])
 
 % error in covariance
 f3 = figure(3);
-errCmat = cell2mat(errC);
+errCmat = cell2mat(errors.errC);
 errCmat(errCmat >=1) = NaN;
 semilogy(ranks,errCmat(:,1),'b-s','LineWidth',2)
 hold on
@@ -259,8 +270,8 @@ set(f3,'Position',[100 100 500 500])
 
 % extract weak errors of \Phi_1 at last end-time T
 for ii=1:numel(ranks)
-  errfPlot(ii,1) = errf{ii,1}(1,end)';
-  errfPlot(ii,2) = errf{ii,2}(1,end)';
+  errfPlot(ii,1) = errors.errf{ii,1}(1,end)';
+  errfPlot(ii,2) = errors.errf{ii,2}(1,end)';
 end
 
 % weak error for \Phi_1
@@ -280,8 +291,8 @@ set(f4,'Position',[100 100 500 500])
 
 % extract weak errors of \Phi_2 at last end-time T
 for ii=1:numel(ranks)
-  errfPlot(ii,1) = errf{ii,1}(2,end)';
-  errfPlot(ii,2) = errf{ii,2}(2,end)';
+  errfPlot(ii,1) = errors.errf{ii,1}(2,end)';
+  errfPlot(ii,2) = errors.errf{ii,2}(2,end)';
 end
 
 % weak error for \Phi_2
