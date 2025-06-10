@@ -11,9 +11,9 @@ rmax = 10;
 
 
 % number of samples
-L_subspace = 2;1e4;
-L_train = 1e1;[1e1 1e2 1e4];
-L_test = 2;1e6;
+L_subspace = 1e4;
+L_train = [1e1 1e2 1e4];
+L_test = 1e6;
 
 
 %% get subspace
